@@ -6,13 +6,14 @@ import math
 
 hsv_min = np.array((5, 165, 110), np.uint8)
 hsv_max = np.array((20, 255, 205), np.uint8)
-mark_hsv_min = np.array((95, 75, 140), np.uint8)
-mark_hsv_max = np.array((100, 170, 250), np.uint8)
+mark_hsv_min = np.array((75, 25, 160), np.uint8)
+mark_hsv_max = np.array((95, 90, 255), np.uint8)
 HReal = 500
 HCamera = 1000
 SCamera = 1000
 
-def MoveRobot(x,y,z):
+def MoveRobot(x, y, z):
+    # -*- coding: utf8 -*-
 
     IP = "192.168.0.1"  # IP Robot 192.168.0.1
     PORT = 6610
@@ -25,14 +26,14 @@ def MoveRobot(x,y,z):
     translateX = x
     translateY = y
     translateZ = z  # максимальная высота 0, минимальная -334
-    i = 0
-    while True:
+    i=0
+    while i<100:
+        i+=1
         # sc.accept()
         str1 = str(translateX) + " " + str(translateY) + " " + str(translateZ)
         sc.sendto(str1.encode("utf-8"), addr)
         # eq = eq + 1
-        if(i>20):
-            break
+        print("true")
 
 
 def FindMarker(img):
@@ -78,19 +79,19 @@ def Trap2Square(y0, x0, z0, top, bottom, HPixel, CenterX): #Подаем (x,y,z)
         z1 = 0
         print("error")
 
-    x1+=11
-    if (x>0):
-        x*=1.13
-    y1-=35
-    y1*=1.3
+    # x1+=11
+    # if (x>0):
+    #     x*=1.13
+    y1-=26
+    # y1*=1.3
     return x1,y1,z1
 
 # Калибровка
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 flag, img = cap.read()
 time.sleep(2)
 flag, img = cap.read()
-img = img[50:len(img)-20, 0:len(img[0])]
+img = img[0:len(img), 0:len(img[0])]
 # Разбиение на части для нахождения меток
 high = len(img); width = len(img[0])
 img1 = img[0:high // 2, 0:width // 2]
@@ -112,10 +113,10 @@ ys=0
 zs=0
 xmove = 0
 ymove = 0
-zmove = 0
+zmove = -330
 while cap.isOpened():
     flag, img = cap.read()
-    img = img[50:len(img)-20, 0:len(img[0])]
+    img = img[0:len(img), 0:len(img[0])]
     PrintMarker(x1, y1, img)
     PrintMarker(x2, y2, img)
     PrintMarker(x3, y3, img)
@@ -140,13 +141,13 @@ while cap.isOpened():
     xt, yt, zt = Trap2Square(xCenter - xRes, y4 - yRes, 1, x2 - x1, x3 - x4, y4 - y1, y4 - yCenter)
     xs+=xt
     ys+=yt
-    zs+=zt
+    # zs+=zt
     n = 15
     if (i%n==0):
         xmove = xs//n
         ymove = ys//n
-        zmove = zs//n
-        print('Координаты x,y: "%d %d %d"' % (xmove, ymove, -330))
+        # zmove = zs//n
+        print('Координаты x,y,z: "%d %d %d"' % (xmove, ymove, zmove))
         xs=0
         ys=0
         zs=0
@@ -156,8 +157,6 @@ while cap.isOpened():
     cv2.imshow('result', img)
     ch = cv2.waitKey(5)
     if ch == 112:
-        input()
-    if ch == 109:
         MoveRobot(xmove, ymove, zmove)
     if ch == 27:
         break
