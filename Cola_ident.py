@@ -6,11 +6,12 @@ import math
 
 hsv_min = np.array((5, 165, 110), np.uint8)
 hsv_max = np.array((20, 255, 205), np.uint8)
-mark_hsv_min = np.array((75, 25, 160), np.uint8)
-mark_hsv_max = np.array((95, 90, 255), np.uint8)
-HReal = 500
-HCamera = 1000
-SCamera = 1000
+mark_hsv_min = np.array((65, 35, 65), np.uint8)
+mark_hsv_max = np.array((100, 135, 255), np.uint8)
+HReal = 420
+HCamera = 580 #Высота камеры над столом
+SCamera = 835 #Расстояние от камеры до центра
+kinect = 1
 
 def MoveRobot(x, y, z):
     # -*- coding: utf8 -*-
@@ -63,15 +64,15 @@ def Trap2Square(y0, x0, z0, top, bottom, HPixel, CenterX): #Подаем (x,y,z)
     try:
         # По X
         KX = (HPixel - CenterX) / CenterX
-        x1 = HReal * KX / ((HPixel / x0) - 1 + KX) + CenterX - 440
+        x1 = HReal * KX / ((HPixel / x0) - 1 + KX) - HReal/2
         # По Y
         h = x0
         x = y0
         y1pix = y0 + x0 * (bottom-top)/(2*HPixel)
         y1 = y1pix*(HReal/bottom)
         # По Z
-        l = math.sqrt(HCamera**2+(SCamera+x1)**2)-z0
-        z1 = (int)(l/z0*HCamera)
+        l = math.sqrt(HCamera**2+(math.sqrt((SCamera+x1)**2+y1**2))**2)-z0
+        z1 = (int)(l/z0*HCamera)*2-340
 
     except(Exception):
         x1 = 0
@@ -80,10 +81,10 @@ def Trap2Square(y0, x0, z0, top, bottom, HPixel, CenterX): #Подаем (x,y,z)
         print("error")
 
     # x1+=11
-    # if (x>0):
-    #     x*=1.13
-    y1-=26
-    # y1*=1.3
+    if (x1>0):
+        x1*=0.84
+    y1-=36
+    # y1*=1.1
     return x1,y1,z1
 
 # Калибровка
@@ -138,15 +139,15 @@ while cap.isOpened():
         xRes = int(dM10 / dArea)
         yRes = int(dM01 / dArea)
         PrintMarker(xRes, yRes, img)
-    xt, yt, zt = Trap2Square(xCenter - xRes, y4 - yRes, 1, x2 - x1, x3 - x4, y4 - y1, y4 - yCenter)
+    xt, yt, zt = Trap2Square(xCenter - xRes, y4 - yRes, kinect, x2 - x1, x3 - x4, y4 - y1, y4 - yCenter)
     xs+=xt
     ys+=yt
-    # zs+=zt
+    zs+=zt
     n = 15
     if (i%n==0):
         xmove = xs//n
         ymove = ys//n
-        # zmove = zs//n
+        zmove = zs//n
         print('Координаты x,y,z: "%d %d %d"' % (xmove, ymove, zmove))
         xs=0
         ys=0
